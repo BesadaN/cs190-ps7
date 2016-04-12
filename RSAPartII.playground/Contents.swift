@@ -190,24 +190,43 @@ class RSA: Crypto {
  ## Implementation of RSA.privateKey() and RSA.decrypt() */
     // The private key is used for decryption.
     func privateKey() -> PrivateKey {
-        return PrivateKey(decryptionExponent: 2, modulus: 3)
+        let mod = p * q
+        let function = (p - 1) * (q - 1)
+        let publicKey = self.publicKey().encryptionExponent
+        let coprime = coprimes(function)
+        var decryptionExponent : Int!
+        for index in coprime{
+            if (index * publicKey) % function == 1
+            {
+                decryptionExponent = index
+            }
+        }
+        
+        return PrivateKey(decryptionExponent: decryptionExponent, modulus: mod)
     }
     
     // Decrypts cipherValue using the private key. Returns the plain value.
     func decrypt(cipherValue: Int) -> Int {
-        return 0
+        let pV = privateKey()
+        var exponent = 1
+        for _ in 0 ..< pV.decryptionExponent
+        {
+            exponent *= cipherValue
+        }
+        return exponent % pV.modulus
     }
     
 }
-/*:
- ## Unit tests that Run Automatically */
-import XCTest
 
-class CryptoTestSuite: XCTestCase {
+    /*:
+     ## Unit tests that Run Automatically */
+    import XCTest
     
-    // Test the primes less than 20
-    func testPrimes() {
-        let expectedPrimes = [2, 3, 5, 7, 11, 13, 17, 19]
+    class CryptoTestSuite: XCTestCase {
+        
+        // Test the primes less than 20
+        func testPrimes() {
+            let expectedPrimes = [2, 3, 5, 7, 11, 13, 17, 19]
         let primesLessThan20 = primes(20)
         XCTAssertEqual(expectedPrimes, primesLessThan20, "Mismatch in list of primes less than 20.")
     }
